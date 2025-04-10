@@ -1,8 +1,15 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <template>
+  <header>
+    <nav class="nav-menu">
+      <RouterLink to="/" class="nav-link">MP3 Player</RouterLink>
+      <RouterLink to="/pdf" class="nav-link">PDF Viewer</RouterLink>
+    </nav>
+  </header>
+
   <RouterView />
 </template>
 
@@ -67,5 +74,31 @@ nav a:first-of-type {
     padding: 1rem 0;
     margin-top: 1rem;
   }
+}
+
+.nav-menu {
+  background-color: #2c3e50;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-size: 1.1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.nav-link:hover {
+  background-color: #34495e;
+}
+
+.nav-link.router-link-active {
+  background-color: #42b983;
 }
 </style>
