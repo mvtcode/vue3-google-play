@@ -11,7 +11,14 @@
       <button @click="convertAndPlay" class="play-button">Phát nhạc</button>
     </div>
     <div v-if="isLoading" class="loading">Đang tải...</div>
-    <audio v-if="audioUrl" :src="audioUrl" controls class="audio-player"></audio>
+    <audio
+      v-if="audioUrl"
+      autoplay
+      :src="audioUrl"
+      controls
+      class="audio-player"
+      ref="audioPlayer"
+    ></audio>
     <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
   </div>
 </template>
@@ -25,6 +32,7 @@ const driveLink = ref(
 const audioUrl = ref('')
 const isLoading = ref(false)
 const errorMessage = ref('')
+const audioPlayer = ref<HTMLAudioElement | null>(null)
 
 const convertAndPlay = async () => {
   if (!driveLink.value) return
@@ -41,8 +49,26 @@ const convertAndPlay = async () => {
       throw new Error('Link Google Drive không hợp lệ')
     }
 
-    const gdriveDirect = `https://drive.google.com/uc?export=download&id=${fileId[0]}`
-    audioUrl.value = `https://api.allorigins.win/raw?url=${encodeURIComponent(gdriveDirect)}`
+    // Thêm timestamp để tránh cache và đảm bảo request luôn đi qua Nginx proxy
+    const timestamp = new Date().getTime()
+    audioUrl.value = `/api/gdrive-proxy/${fileId[0]}?_t=${timestamp}`
+
+    // Xác nhận bằng console.log để debug
+    console.log('Đang yêu cầu proxy qua:', audioUrl.value)
+
+    // Đợi một chút để đảm bảo audio element đã được cập nhật với URL mới
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    // Tự động phát nhạc
+    if (audioPlayer.value) {
+      try {
+        await audioPlayer.value.play()
+      } catch (playError) {
+        console.error('Không thể tự động phát nhạc:', playError)
+        errorMessage.value =
+          'Trình duyệt không cho phép tự động phát nhạc. Vui lòng click vào nút play.'
+      }
+    }
   } catch (error) {
     console.error('Lỗi khi chuyển đổi link:', error)
     errorMessage.value = error instanceof Error ? error.message : 'Đã xảy ra lỗi khi xử lý link'
